@@ -96,7 +96,7 @@ class MoodleSession:
             "index": 0,
             "methodname": method_name,
             "args": {
-                "year": date_now.year, "month": date_now.month, "day": date_now.day, "courseid": 1, "categoryid": 0,
+                "year": date_now.year, "month": date_now.month, "day": 30, "courseid": 1, "categoryid": 0,
             }
         }
         request_data = json.dumps([request_dict])
@@ -104,7 +104,7 @@ class MoodleSession:
                                               params={"sesskey": self.session_key, "info": method_name},
                                               data=request_data)
 
-        day_data = calendar_response.json()
+        day_data = calendar_response.json()[0]
         if day_data["error"]:
             raise Exception("Have got error in calendar day info response.")
 
