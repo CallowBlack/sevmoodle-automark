@@ -12,4 +12,7 @@ session.update_password("WDD7tves")
 
 session.login()
 assert session.is_logged_in(), "login with correct credentials failed"
+
+session.update_calendar()
+
 print("All tests was passed.")

@@ -1,6 +1,10 @@
 import urllib3
 import requests
 import re
+import json
+from datetime import datetime
+
+from src.calendar_manager import CalendarManager
 
 
 class MoodleSession:
@@ -14,7 +18,7 @@ class MoodleSession:
         return MoodleSession.__sessions[username]
 
     def __init__(self, username):
-        self.calendar = None
+        self.calendar = CalendarManager()
         self.session_key = None
         self.username = username
         self.password = None
@@ -33,7 +37,8 @@ class MoodleSession:
     def login(self, password: str = None):
         if password is None:
             if self.password is None:
-                raise Exception("You must to determine password in 'login' function or with 'update_password' function.")
+                raise Exception(
+                    "You must to determine password in 'login' function or with 'update_password' function.")
             else:
                 password = self.password
         # if debug:
@@ -81,4 +86,29 @@ class MoodleSession:
         self.session_key = session_key_regex.search(main_page_content).group(1)
 
     def update_calendar(self):
-        pass
+        if not self.is_logged_in():
+            raise Exception("You must login before update_calendar.")
+
+        # self.calendar.clear()
+        date_now = datetime.now()
+        method_name = "core_calendar_get_calendar_day_view"
+        request_dict = {
+            "index": 0,
+            "methodname": method_name,
+            "args": {
+                "year": date_now.year, "month": date_now.month, "day": date_now.day, "courseid": 1, "categoryid": 0,
+            }
+        }
+        request_data = json.dumps([request_dict])
+        calendar_response = self.session.post("https://do.sevsu.ru/lib/ajax/service.php",
+                                              params={"sesskey": self.session_key, "info": method_name},
+                                              data=request_data)
+
+        day_data = calendar_response.json()
+        if day_data["error"]:
+            raise Exception("Have got error in calendar day info response.")
+
+        day_events = day_data["data"]["events"]
+        for event in day_events:
+            if event["eventtype"] == "attendance":
+                self.calendar.add_event(event["timestart"], event["timeduration"], event["url"])
