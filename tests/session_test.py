@@ -9,7 +9,7 @@ async def main():
 
 
 async def test_1():
-    session: MoodleSession = await MoodleSession.get_session("hello")
+    session: MoodleSession = MoodleSession.get_session("hello")
     session.update_password("zero")
     assert not (await session.is_logged_in()), "is_logged_in test without login failed"
 
@@ -23,12 +23,12 @@ async def test_1():
 
 
 async def test_2():
-    session = await MoodleSession.get_session("00-010670")
+    session = MoodleSession.get_session("00-010670")
     session.update_password("WDD7tves")
 
-    await session.login()
-    result = await session.is_logged_in()
-    assert result, "login with correct credentials failed"
+    # await session.login()
+    # result = await session.is_logged_in()
+    # assert result, "login with correct credentials failed"
 
     await session.update_calendar()
     await session.close()
