@@ -6,12 +6,16 @@ from datetime import datetime
 from src.calendar_manager import CalendarManager
 
 
+class LoginError(Exception):
+    pass
+
+
 class MoodleSession:
     # Username: MoodleSession
     __sessions = {}
 
     @staticmethod
-    async def get_session(username):
+    def get_session(username):
         if username not in MoodleSession.__sessions:
             MoodleSession.__sessions[username] = MoodleSession(username,
                                                                aiohttp.ClientSession(requote_redirect_url=False))
@@ -27,17 +31,13 @@ class MoodleSession:
     def update_password(self, password: str):
         self.password = password
 
-    async def is_logged_in(self) -> bool:
-        if self.session_key is not None:
-            url = "https://do.sevsu.ru/my/"
-            main_page_response = await self.session.get(url)
-            return url == main_page_response.url.__str__()
-        return False
+    def is_logged_in(self) -> bool:
+        return self.session_key is not None
 
     async def login(self, password: str = None):
         if password is None:
             if self.password is None:
-                raise Exception(
+                raise ValueError(
                     "You must to determine password in 'login' function or with 'update_password' function.")
             else:
                 password = self.password
@@ -58,7 +58,7 @@ class MoodleSession:
             login_response_text = await login_response.text()
             if re.search(auth_link_regex, login_response_text):
                 raise ValueError(f"Incorrect username or password. -> {self.username}")
-            print(f"Successfully logged in. -> {self.username}")
+            print(f"[+] Successfully logged in. -> {self.username}")
 
         saml_login_link_regex = re.compile(r"<form name=\"saml-post-binding\" method=\"post\" action=\"([^\"]+)\"")
         saml_login_data_regex = re.compile(r"<input type=\"hidden\" name=\"(\w+)\" value=\"([^\"]+)\"")
@@ -72,8 +72,8 @@ class MoodleSession:
             self.session_key = session_key_regex.search(await main_page_response.text()).group(1)
 
     async def update_calendar(self):
-        if not (await self.is_logged_in()):
-            raise Exception("You must login before update_calendar.")
+        if not self.is_logged_in():
+            raise LoginError("You must login before update_calendar.")
 
         # self.calendar.clear()
         date_now = datetime.now()
@@ -82,18 +82,17 @@ class MoodleSession:
             "index": 0,
             "methodname": method_name,
             "args": {
-                "year": date_now.year, "month": date_now.month, "day": 30, "courseid": 1, "categoryid": 0,
+                "year": date_now.year, "month": date_now.month, "day": date_now.day, "courseid": 1, "categoryid": 0,
             }
         }
         request_data = json.dumps([request_dict])
         async with self.session.post("https://do.sevsu.ru/lib/ajax/service.php",
                                      params={"sesskey": self.session_key, "info": method_name},
                                      data=request_data) as calendar_response:
-
             day_data = (await calendar_response.json())[0]
 
         if day_data["error"]:
-            raise ValueError("Have got error in calendar day info response.")
+            raise LoginError("Have got error in calendar day info response.")
 
         day_events = day_data["data"]["events"]
         for event in day_events:
@@ -101,6 +100,8 @@ class MoodleSession:
                 self.calendar.add_event(event["timestart"], event["timeduration"], event["url"])
 
     async def mark_available_attendance(self):
+        if not self.is_logged_in():
+            return LoginError()
         active_links = self.calendar.get_active_events()
         for link in active_links:
             pass
