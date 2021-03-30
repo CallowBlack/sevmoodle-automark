@@ -38,7 +38,7 @@ class MoodleSession:
         if password is None:
             if self.password is None:
                 raise ValueError(
-                    "You must to determine password in 'login' function or with 'update_password' function.")
+                    "You must to determine password in 'login' function or update it in 'update_password' function.")
             else:
                 password = self.password
 
@@ -104,7 +104,34 @@ class MoodleSession:
             return LoginError()
         active_links = self.calendar.get_active_events()
         for link in active_links:
-            pass
+            async with self.session.get(link) as attendance_calendar_resp:
+                attendance_links_regex = re.compile("colspan=\"3\"><a href=\"([^\"]+)\"")
+                attendance_text = await attendance_calendar_resp.text()
+                attendance_links = attendance_links_regex.findall(attendance_text)
+
+            for attendance_link in attendance_links:
+                attendance_link = utils.clear_html_url(attendance_link)
+                sess_id_regex = re.compile(r"sessid=(\d+)&")
+                sess_id = sess_id_regex.search(attendance_link).group(1)
+
+                async with self.session.get(attendance_link) as get_attendance_page_resp:
+                    status_id_regex = re.compile(r"name=\"status\" value=\"(\d+)\">")
+                    text = await get_attendance_page_resp.text()
+                    status_id = status_id_regex.search(text).group(1)
+
+                attendance_data = {"sessid": sess_id, "sesskey": self.session_key,
+                                   "_qf__mod_attendance_form_studentattendance": 1,
+                                   "mform_isexpanded_id_session": 1,
+                                   "status": status_id,
+                                   "submitbutton": "Сохранить"}
+
+                async with self.session.post("https://do.sevsu.ru/mod/attendance/attendance.php",
+                                             data=attendance_data) as mark_attendance_resp:
+                    text = await mark_attendance_resp.text()
+                    if text.find("Ошибка") != -1:
+                        print(f"[-] Error while marking attendance. Link: {attendance_link}")
+                    else:
+                        print(f"[+] Attendance was marked successfully. Link: {attendance_link}")
 
     async def close(self):
         await self.session.close()
