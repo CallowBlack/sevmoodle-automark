@@ -1,5 +1,6 @@
 from datetime import datetime
 import pprint
+import src.utils as utils
 
 
 class CalendarManager:
@@ -22,7 +23,7 @@ class CalendarManager:
         self.__calendar.clear()
 
     def add_event(self, start_timestamp: int, duration: int, link: str):
-        year, month, day = self.__time_to_date(start_timestamp)
+        year, month, day = utils.time_to_date(start_timestamp)
         if year not in self.__calendar:
             self.__calendar[year] = {}
         if month not in self.__calendar[year]:
@@ -37,7 +38,7 @@ class CalendarManager:
 
         if target_timestamp is None:
             target_timestamp = int(datetime.now().timestamp())
-        year, month, day = self.__time_to_date(target_timestamp)
+        year, month, day = utils.time_to_date(target_timestamp)
 
         if not self.__has_calendar_date(year, month, day):
             return events
@@ -50,7 +51,7 @@ class CalendarManager:
         return events
 
     def remove_event(self, event_timestamp: int, link: str = None):
-        year, month, day = self.__time_to_date(event_timestamp)
+        year, month, day = utils.time_to_date(event_timestamp)
         if not self.__has_calendar_date(year, month, day):
             return
 
@@ -67,8 +68,3 @@ class CalendarManager:
         return year in self.__calendar and \
                 month in self.__calendar[year] and \
                 day in self.__calendar[year][month]
-
-    @staticmethod
-    def __time_to_date(timestamp: int) -> (int, int, int):
-        date = datetime.fromtimestamp(timestamp)
-        return date.year, date.month, date.day

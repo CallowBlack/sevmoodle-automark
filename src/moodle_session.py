@@ -4,7 +4,7 @@ import aiohttp
 from datetime import datetime
 
 from src.calendar_manager import CalendarManager
-
+import src.utils as utils
 
 class LoginError(Exception):
     pass
@@ -49,7 +49,7 @@ class MoodleSession:
             auth_link_regex = re.compile(
                 r"<form id=\"login-form\" onsubmit=\"login.disabled = true; return true;\" action=\"([^\"]+)\"")
             auth_link = re.search(auth_link_regex, await to_auth_resp.text()).group(1)
-            auth_link = auth_link.replace("&amp;", "&")  # Replacing url encoded "&"
+            auth_link = utils.clear_html_url(auth_link)
 
         login_data = {"username": self.username,
                       "password": password,
