@@ -32,7 +32,7 @@ async def __update_calendar(session: MoodleSession):
         print("[!] Network Error. Failed to try update calendar.")
     else:
         pass
-        # print(f"[+] Updated calendar for '{session.username}'")
+        print(f"[+] Updated calendar for '{session.username}'")
 
 
 async def __mark_attendance_pool():
