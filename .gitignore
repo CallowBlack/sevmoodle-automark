@@ -130,3 +130,6 @@ dmypy.json
 
 # Config file
 preferences.ini
+
+# Remove research
+research
