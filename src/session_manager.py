@@ -19,14 +19,15 @@ async def __update_calendar_pool():
 
 
 async def __update_calendar(session: MoodleSession):
-    print(f"[\\] Try to update calendar for '{session.username}'")
+    # print(f"[\\] Try to update calendar for '{session.username}'")
     try:
         await session.update_calendar()
     except LoginError:
         if await __login_user(session):
             await __update_calendar(session)
     else:
-        print(f"[+] Updated calendar for '{session.username}'")
+        pass
+        # print(f"[+] Updated calendar for '{session.username}'")
 
 
 async def __mark_attendance_pool():
@@ -36,14 +37,15 @@ async def __mark_attendance_pool():
 
 
 async def __mark_attendance(session: MoodleSession):
-    print(f"[\\] Try to mark available attendance for {session.username}")
+    # print(f"[\\] Try to mark available attendance for {session.username}")
     try:
         await session.mark_available_attendance()
     except LoginError:
         if await __login_user(session):
             await __mark_attendance(session)
     else:
-        print(f"[+] Mark available attendance for '{session.username}'")
+        pass
+        # print(f"[+] Marked available attendance for '{session.username}'")
 
 
 async def __login_user(session: MoodleSession):
