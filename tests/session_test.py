@@ -11,7 +11,7 @@ async def main():
 async def test_1():
     session: MoodleSession = MoodleSession.get_session("hello")
     session.update_password("zero")
-    assert not (await session.is_logged_in()), "is_logged_in test without login failed"
+    assert not (session.is_logged_in()), "is_logged_in test without login failed"
 
     try:
         await session.login()
