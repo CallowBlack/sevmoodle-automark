@@ -115,7 +115,7 @@ class MoodleSession:
                 sess_id = sess_id_regex.search(attendance_link).group(1)
 
                 async with self.session.get(attendance_link) as get_attendance_page_resp:
-                    status_id_regex = re.compile(r"name=\"status\" value=\"(\d+)\">")
+                    status_id_regex = re.compile(r"name=\"status\"\s+id=\"id_status_(\d+)\"")
                     text = await get_attendance_page_resp.text()
                     status_id = status_id_regex.search(text).group(1)
 
