@@ -31,7 +31,7 @@ def print_command_list(_):
 
 
 def print_user_list(_):
-    for username, password in data_manager.get_users():
+    for username, password in data_manager.get_users().items():
         print(f"{username}:{password}")
 
 
