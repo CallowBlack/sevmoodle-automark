@@ -238,7 +238,7 @@ class MoodleSession:
 
     async def mark_available_attendance(self):
         if not self.is_logged_in():
-            return LoginError()
+            raise LoginError()
         active_links = self.calendar.get_active_events()
         for link in active_links:
             async with self.session.get(link) as attendance_calendar_resp:
