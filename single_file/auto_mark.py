@@ -296,6 +296,8 @@ async def __update_calendar(session: MoodleSession):
     except LoginError:
         if await __login_user(session):
             await __update_calendar(session)
+    except aiohttp.ClientOSError:
+        print("[-] Network Error. Failed to try update calendar.")
     else:
         pass
         # print(f"[+] Updated calendar for '{session.username}'")
@@ -314,6 +316,8 @@ async def __mark_attendance(session: MoodleSession):
     except LoginError:
         if await __login_user(session):
             await __mark_attendance(session)
+    except aiohttp.ClientOSError:
+        print("[-] Network Error. Failed to try mark attendance.")
     else:
         pass
         # print(f"[+] Marked available attendance for '{session.username}'")
@@ -325,6 +329,9 @@ async def __login_user(session: MoodleSession):
     except ValueError:
         print("[!] User with incorrect credentials:", session.username)
         remove_user(session.username)
+        return False
+    except aiohttp.ClientOSError:
+        print("[!] Network Error. Failed to login:", session.username)
         return False
     return True
 
